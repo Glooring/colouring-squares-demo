@@ -28,10 +28,7 @@ Play the demo on Vercel using the following link: [Colouring Squares - Demo](htt
 4. **Levels and Difficulty Progression**:
    - The game features multiple levels with progressively harder patterns and painter setups, adding complexity with each level.
 
-5. **Audio System**:
-   - Sound effects are triggered by in-game events such as painter movement, level completion, and interactions.
-
-6. **Grid Bounds Check**:
+5. **Grid Bounds Check**:
    - Painters are automatically destroyed if they move out of the grid's bounds, preventing unwanted behavior.
 
 ---
