@@ -1,7 +1,5 @@
 # Colouring Squares
 
-**Colouring Squares** is a 2D puzzle game developed in Unity, where players control painter objects to color a grid of squares and match a predefined color pattern. Each level presents unique challenges and increasing difficulty, requiring players to strategize their moves while avoiding obstacles.
-
 ## Demo
 
 Play the demo on Vercel using the following link: [Colouring Squares - Demo](https://your-vercel-demo-link.vercel.app)
