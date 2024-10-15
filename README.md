@@ -2,7 +2,7 @@
 
 ## Demo
 
-Play the demo on Vercel using the following link: [Colouring Squares - Demo](https://your-vercel-demo-link.vercel.app)
+Play the demo on Vercel using the following link: [Colouring Squares - Demo](https://colouring-squares-demo.vercel.app/)
 
 ---
 
