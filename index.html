@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <title>Colouring Squares 3</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            touch-action: none;
+            text-align: center;
+        }
+
+        #unity-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+        }
+
+        #unity-canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: black;
+        }
+
+        #unity-canvas:focus {
+            outline: none;
+        }
+
+        /* Hide Unity's default loading bar and footer */
+        #unity-loading-bar, #unity-footer {
+            display: none;
+        }
+
+        /* Loading Screen Styles (adapted from Godot) */
+        #status {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Make it visible initially */
+            visibility: visible;
+            z-index: 9999;
+        }
+
+        #status-progress {
+            width: 366px;
+            height: 7px;
+            background-color: #38363A;
+            border: 1px solid #444246;
+            padding: 1px;
+            box-shadow: 0 0 2px 1px #1B1C22;
+            border-radius: 2px;
+            visibility: visible;
+        }
+
+        @media only screen and (orientation:portrait) {
+            #status-progress {
+                width: 61.8%;
+            }
+        }
+
+        #status-progress-inner {
+            height: 100%;
+            width: 0;
+            box-sizing: border-box;
+            transition: width 0.5s linear;
+            background-color: #202020;
+            border: 1px solid #222223;
+            box-shadow: 0 0 1px 1px #27282E;
+            border-radius: 3px;
+        }
+
+        #status-indeterminate {
+            height: 42px;
+            visibility: visible;
+            position: relative;
+        }
+
+        #status-indeterminate > div {
+            width: 4.5px;
+            height: 0;
+            border-style: solid;
+            border-width: 9px 3px 0 3px;
+            border-color: #2b2b2b transparent transparent transparent;
+            transform-origin: center 21px;
+            position: absolute;
+        }
+
+        /* Rotating elements for indeterminate loading */
+        #status-indeterminate > div:nth-child(1) { transform: rotate( 22.5deg); }
+        #status-indeterminate > div:nth-child(2) { transform: rotate( 67.5deg); }
+        #status-indeterminate > div:nth-child(3) { transform: rotate(112.5deg); }
+        #status-indeterminate > div:nth-child(4) { transform: rotate(157.5deg); }
+        #status-indeterminate > div:nth-child(5) { transform: rotate(202.5deg); }
+        #status-indeterminate > div:nth-child(6) { transform: rotate(247.5deg); }
+        #status-indeterminate > div:nth-child(7) { transform: rotate(292.5deg); }
+        #status-indeterminate > div:nth-child(8) { transform: rotate(337.5deg); }
+
+        #status-notice {
+            margin: 0 100px;
+            line-height: 1.3;
+            visibility: visible;
+            padding: 4px 6px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="status">
+        <div id="status-progress" style="display: none;" oncontextmenu="event.preventDefault();">
+            <div id="status-progress-inner"></div>
+        </div>
+        <div id="status-indeterminate" style="display: none;" oncontextmenu="event.preventDefault();">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div id="status-notice" style="display: none;"></div>
+    </div>
+
+    <!-- Unity Container -->
+    <div id="unity-container">
+        <canvas id="unity-canvas" tabindex="1"></canvas>
+    </div>
+    <script>
+
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/ColouringSquaresWeb.loader.js";
+
+        // Dynamically set devicePixelRatio to counteract system scaling
+        var systemPixelRatio = window.devicePixelRatio || 1;
+        var desiredPixelRatio = 1; // Target devicePixelRatio for Unity
+        var unityDevicePixelRatio = desiredPixelRatio / systemPixelRatio;
+
+		function getDevicePixelRatio() {
+			// Get the default device pixel ratio from the browser
+			let devicePixelRatio = window.devicePixelRatio || 1;
+
+			// Detect mobile devices (Android, iPhone, iPad, iPod)
+			var isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+
+			if (!isMobile) {
+				// Get screen dimensions
+				const screenWidth = window.screen.width;
+				const screenHeight = window.screen.height;
+
+				// Calculate aspect ratio
+				const aspectRatio = screenWidth / screenHeight;
+
+				// Set the extra scaling factor to the aspect ratio
+				let extraScalingFactor = aspectRatio.toFixed(2);
+
+				// Apply the calculated scaling factor based on the aspect ratio
+				devicePixelRatio = devicePixelRatio * extraScalingFactor;
+
+				//console.log(`Screen Resolution: ${screenWidth}x${screenHeight}`);
+				//console.log(`Aspect Ratio: ${aspectRatio.toFixed(2)}`);
+				//console.log(`Calculated Extra Scaling Factor (Aspect Ratio): ${extraScalingFactor}`);
+			}
+
+			//console.log(`Final devicePixelRatio: ${devicePixelRatio} (Mobile: ${isMobile})`);
+			return devicePixelRatio;
+		}
+      var config = {
+        dataUrl: buildUrl + "/ColouringSquaresWeb.data",
+        frameworkUrl: buildUrl + "/ColouringSquaresWeb.framework.js",
+        codeUrl: buildUrl + "/ColouringSquaresWeb.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "Colouring Squares 3",
+        productVersion: "1.0",
+		devicePixelRatio: getDevicePixelRatio() // Apply the dynamic devicePixelRatio with extra scaling
+        // matchWebGLToCanvasSize: false,
+      };
+
+        // Prevent context menu on right-click
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        // Prevent browser zooming via keyboard and mouse wheel
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && (event.key === '+' || event.key === '-' || event.key === '=' || event.key === '_')) {
+                event.preventDefault();
+            }
+        });
+        document.addEventListener('wheel', function(event) {
+            if (event.ctrlKey) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+
+        let canvas = document.getElementById("unity-canvas");
+        let container = document.getElementById("unity-container");
+        let unityInstance = null;
+
+        // Loading Screen Elements
+        const status = document.getElementById('status');
+        const statusProgress = document.getElementById('status-progress');
+        const statusProgressInner = document.getElementById('status-progress-inner');
+        const statusIndeterminate = document.getElementById('status-indeterminate');
+        const statusNotice = document.getElementById('status-notice');
+
+        let initializing = true;
+        let statusMode = 'hidden';
+
+        // Animation for the indeterminate loader
+        let animationCallbacks = [];
+        function animate(time) {
+            animationCallbacks.forEach((callback) => callback(time));
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+
+        function animateStatusIndeterminate(ms) {
+            const i = Math.floor((ms / 100) % 8);
+            if (statusIndeterminate.children[i].style.borderTopColor === '') {
+                Array.prototype.slice.call(statusIndeterminate.children).forEach((child) => {
+                    child.style.borderTopColor = '';
+                });
+                statusIndeterminate.children[i].style.borderTopColor = '#dfdfdf';
+            }
+        }
+
+        function setStatusMode(mode) {
+            if (statusMode === mode || !initializing) {
+                return;
+            }
+            [statusProgress, statusIndeterminate, statusNotice].forEach((elem) => {
+                elem.style.display = 'none';
+            });
+            animationCallbacks = animationCallbacks.filter(function (value) {
+                return (value !== animateStatusIndeterminate);
+            });
+            switch (mode) {
+                case 'progress':
+                    statusProgress.style.display = 'block';
+                    break;
+                case 'indeterminate':
+                    statusIndeterminate.style.display = 'block';
+                    animationCallbacks.push(animateStatusIndeterminate);
+                    break;
+                case 'notice':
+                    statusNotice.style.display = 'block';
+                    break;
+                case 'hidden':
+                    status.style.display = 'none';
+                    break;
+                default:
+                    throw new Error('Invalid status mode');
+            }
+            statusMode = mode;
+        }
+
+        function displayFailureNotice(err) {
+            const msg = err.message || err;
+            console.error(msg);
+            statusNotice.innerText = msg;
+            setStatusMode('notice');
+            initializing = false;
+        }
+
+        function resizeCanvas() {
+            const aspectRatio = 9 / 16;
+            let width, height;
+            let availableWidth = window.innerWidth;
+            let availableHeight = window.innerHeight;
+
+            if (availableHeight * aspectRatio <= availableWidth) {
+                height = availableHeight;
+                width = height * aspectRatio;
+            } else {
+                width = availableWidth;
+                height = width / aspectRatio;
+            }
+
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+			// Adjust based on the dynamically calculated devicePixelRatio
+			let devicePixelRatio = getDevicePixelRatio();
+
+			// Set the canvas size in actual pixels for sharpness
+			canvas.width = Math.floor(width * devicePixelRatio);
+			canvas.height = Math.floor(height * devicePixelRatio);
+
+			// Log for debugging
+			//console.log(`Final devicePixelRatio used: ${devicePixelRatio}`);
+			//console.log(`Canvas width: ${canvas.width}, height: ${canvas.height}`);
+            // Center the canvas within the container
+            canvas.style.marginTop = ((availableHeight - height) / 2) + 'px';
+
+            // Unity will automatically adjust the WebGL context size
+        }
+		// Listen for changes in fullscreen mode and window resize
+		document.addEventListener('fullscreenchange', resizeCanvas);
+		window.addEventListener('resize', resizeCanvas);
+
+		// Call the resize function when the page loads
+		window.addEventListener('load', resizeCanvas);
+
+        // Fullscreen toggle with F11 key
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "F11") {
+                event.preventDefault();
+                if (!document.fullscreenElement) {
+                    container.requestFullscreen().catch(err => {
+                        console.log(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        // Resize canvas when entering or exiting fullscreen
+        document.addEventListener('fullscreenchange', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+
+        // Start the loading screen
+        setStatusMode('indeterminate');
+
+        // Load Unity script
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+
+        script.onload = () => {
+            createUnityInstance(canvas, config, (progress) => {
+                if (progress === 1) {
+                    setStatusMode('hidden');
+                    initializing = false;
+                } else {
+                    statusProgressInner.style.width = `${(progress * 100)}%`;
+                    setStatusMode('progress');
+                }
+            }).then((instance) => {
+                unityInstance = instance;
+                resizeCanvas();
+            }).catch((message) => {
+                displayFailureNotice(message);
+            });
+        };
+
+        script.onerror = () => {
+            displayFailureNotice('Failed to load Unity loader script.');
+        };
+
+        document.body.appendChild(script);
+    </script>
+  </body>
+</html>
